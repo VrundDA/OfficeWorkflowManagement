@@ -1,0 +1,75 @@
+{% extends "tasks/base/base.html" %}
+
+{% block navbar %}
+    <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/all-users/">All Users</a>
+        <a class="navbar-brand" href="/pending-approval/">Pending Approval</a>
+        <a class="navbar-brand" href="/all-tasks/">All Tasks</a>
+        <a class="navbar-brand" href="/create-tasks/">Create Tasks</a>
+        <a class="navbar-brand" href="/do-tasks/">Do Tasks</a>
+        <a class="navbar-brand" href="/review-list/">Review Tasks</a>
+        <a class="btn btn-outline-success" href="/logout/">Logout</a>
+    </div>
+    </nav>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% endif %}
+        {% for user in users %}
+        <div class="container-fluid px-4 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        <a href="/user/{{ user.username }}/">{{ user.first_name }} {{ user.last_name }}</a>
+                    </h5>
+
+                    <h6 class="card-subtitle mb-2 text-body-secondary">
+                        {{ user.username }}
+                    </h6>
+
+                    <p class="card-text">
+                        {{ user.email }}
+                    </p>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <form method="post" action="/remove-user/{{ user.id }}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#removeModal{{user.id}}">
+                            Remove
+                            </button>
+
+                            <div class="modal fade" id="removeModal{{user.id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Remove the User Permanently</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        This is an irreversible process, <b>clicking on REMOVE will permanently remove the user from the database.</b>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-danger">Remove the User</button>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

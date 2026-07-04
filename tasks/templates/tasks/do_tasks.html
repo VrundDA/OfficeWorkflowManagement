@@ -1,0 +1,96 @@
+{% extends "tasks/base/base.html" %}
+{% load static %} 
+
+{% block navbar %}
+    <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/all-users/">All Users</a>
+        <a class="navbar-brand" href="/pending-approval/">Pending Approval</a>
+        <a class="navbar-brand" href="/all-tasks/">All Tasks</a>
+        <a class="navbar-brand" href="/create-tasks/">Create Tasks</a>
+        <a class="navbar-brand" href="/do-tasks/">Do Tasks</a>
+        <a class="navbar-brand" href="/review-list/">Review Tasks</a>
+        <a class="btn btn-outline-success" href="/logout/">Logout</a>
+    </div>
+    </nav>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static "tasks/js/task_review.js" %}"></script>
+<script src="{% static "tasks/js/task_search.js" %}"></script>
+<script>
+    {% if subtasks_json %}
+    let subtasks = JSON.parse(
+        '{{ subtasks_json|escapejs }}'
+    )
+    let tasks = JSON.parse(
+        '{{ tasks_json|escapejs }}'
+    )
+    {% else %}
+    let subtasks = [];
+    let tasks = []
+    {% endif %}
+</script>
+{% endblock %}
+
+{% block body %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-primary" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="container mt-4 mb-3">
+        <input
+            type="text"
+            id="task-search"
+            class="form-control"
+            placeholder="Search tasks..."
+            onkeyup='filterTasks()'
+        >
+    </div>
+    <div class="container mt-5">
+    {% for task in tasks %}
+        {% if task.status == "PENDING" %}
+            <div class="card text-center task-card mb-3" data-search="{{ task.title }} {{ task.description }} {{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}">
+            <div class="card-header">
+                Created by <b>{{ task.created_by.first_name }} {{ task.created_by.last_name }}</b>
+            </div>
+            <div class="card-body {% if task.completed %}text-bg-success border border-primary{% elif task.assigned_to %}text-bg-warning border border-primary{% endif %}" style="margin-bottom:0px">
+                <h4 class="card-title">{{ task.title }}</h4>
+                <h6 class="card-text">{{ task.description }}</h6>
+                <p class="card-text" id="assigned-person-{{ task.id }}">
+                    Assigned to:
+                    {% if task.assigned_to %}
+                        {{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}
+                    {% else %}
+                        No one
+                    {% endif %}
+                </p>
+                <ul class="list-group list-group-flush">
+                {% for subtask in subtasks %}
+                    {% if subtask.task == task %}
+                    <form id="myForm-{{ subtask.id }}" action="/complete-subtask/{{ subtask.id }}" method="post" enctype="multipart/form-data">
+                    <div class="input-group-text {% if task.completed %}text-bg-success mb-3 border border-success {% elif task.status == "REVIEW" %}text-bg-info mb-3 border border-success {% elif task.assigned_to %}text-bg-warning mb-3 border border-danger {% else %}text-bg card-body{% endif %}">
+                            {% csrf_token %}
+                            <input class="form-check-input mt-0" id="{{ subtask.id }}" type="checkbox" onchange="this.form.submit()" aria-label="Checkbox for following text input" onclick='ReviewTask("{{ task.id }}")' {% if subtask.completed %}checked{% endif %} {% if task.status == "REVIEW" %}disabled{% endif %}>
+                            <label for="{{ subtask.id }}" class="list-group-item {% if task.assigned_to %}text-bg-warning mb-3 border border-warning {% endif %}">{{ subtask.title }}</label>
+                        </div>
+                    </form>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+                <form action="/put-in-review/{{ task.id }}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button type="submit" id="{{ task.id }}" class="btn btn-info">Review Task</button>
+                </form>
+            </div>
+            <div class="card-footer text-body-secondary">
+                {{ task.created_at|timesince }} ago
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %} 
+    </div>
+{% endblock %}

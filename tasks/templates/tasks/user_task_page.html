@@ -1,0 +1,75 @@
+{% extends "tasks/base/base.html" %}
+{% load static %}
+
+{% block navbar %}
+    <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/all-users/">All Users</a>
+        <a class="btn btn-outline-success" href="/logout/">Logout</a>
+    </div>
+    </nav>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static "tasks/js/task_search.js" %}"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5 d-flex justify-content-end">
+        <div class="dropdown">
+            <button class="btn border border-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Filter tasks
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/completed/">Completed Tasks</a></li>
+                <li><a class="dropdown-item" href="/unassigned/">Unassigned Tasks</a></li>
+                <li><a class="dropdown-item" href="/in-review/">In Review Tasks</a></li>
+                <li><a class="dropdown-item" href="/assigned/">Assigned Tasks</a></li>
+                <li><a class="dropdown-item" href="/all-tasks/">All Tasks</a><li>
+            </ul>
+        </div>
+    </div>
+    <div class="container mt-4 mb-3">
+        <input
+            type="text"
+            id="task-search"
+            class="form-control"
+            placeholder="Search tasks..."
+            onkeyup='filterTasks()'
+        >
+    </div>
+    <div class="container mt-5">
+        {% for task in tasks %}
+            <div class="card text-center task-card mb-3" data-search="{{ task.title }} {{ task.description }} {{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}">
+            <div class="card-header">
+                Created by <b>{{ task.created_by.first_name }} {{ task.created_by.last_name }}</b>
+            </div>
+            <div class="card-body {% if task.status == "COMPLETED" %}text-bg-success border border-success {% elif task.status == "REVIEW" %}text-bg-info border border-success {% elif task.assigned_to %}text-bg-warning border border-primary{% endif %}" style="margin-bottom:0px;">
+                <h4 class="card-title">{{ task.title }}</h4>
+                <h6 class="card-text">{{ task.description }}</h6>
+                <p class="card-text" id="assigned-person-{{ task.id }}">
+                    Assigned to:
+                    {% if task.assigned_to %}
+                        {{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}
+                    {% else %}
+                        No one
+                    {% endif %}
+                </p>
+                <ul class="list-group list-group-flush">
+                {% for subtask in subtasks %}
+                    {% if subtask.task == task %}
+                    <div class="input-group-text {% if task.status == "COMPLETED" %}text-bg-success mb-3 border border-danger {% elif task.status == "REVIEW" %}text-bg-info mb-3 border border-danger {% elif task.assigned_to %}text-bg-warning mb-3 border border-danger {% else %}text-bg card-body{% endif %}">
+                        <input class="form-check-input mt-0" id="{{ subtask.id }}" type="checkbox" value="" aria-label="Checkbox for following text input" disabled {% if subtask.completed %}checked{% endif %} {% if task.status == "REVIEW" %}text-bg-info mb-3 border border-success {%endif%}>
+                        <label for="{{ subtask.id }}" class="list-group-item {% if task.status == "COMPLETED" %}text-bg-warning mb-3 border border-warning {% elif task.status == "REVIEW" %}text-bg-info mb-3 border border-info{% elif task.assigned_to %}text-bg-warning mb-3 border border-warning {% endif %}">{{ subtask.title }}</label>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="card-footer text-body-secondary">
+                {{ task.created_at|timesince }} ago
+            </div>
+        </div>
+        {% endfor %} 
+    </div>
+{% endblock %}

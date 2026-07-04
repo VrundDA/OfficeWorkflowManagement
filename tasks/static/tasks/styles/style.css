@@ -1,0 +1,5 @@
+.subtask-cell {
+    max-width: 500px;
+    white-space: normal;
+    overflow-wrap: break-all;
+}

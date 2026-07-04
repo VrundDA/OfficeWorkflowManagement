@@ -1,0 +1,91 @@
+{% extends "tasks/base/base.html" %}
+{% load static %}
+
+{% block navbar %}
+    <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/all-users/">All Users</a>
+        <a class="navbar-brand" href="/pending-approval/">Pending Approval</a>
+        <a class="navbar-brand" href="/all-tasks/">All Tasks</a>
+        <a class="navbar-brand" href="/create-tasks/">Create Tasks</a>
+        <a class="navbar-brand" href="/do-tasks/">Do Tasks</a>
+        <a class="navbar-brand" href="/review-list/">Review Tasks</a>
+        <a class="btn btn-outline-success" href="/logout/">Logout</a>
+    </div>
+    </nav>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static "tasks/js/task_creation.js" %}"></script>
+<script>
+    {% if task %}
+    let subtasks = JSON.parse(
+        '{{ subtasks_json|escapejs }}'
+    )
+    let subtasksComplete = JSON.parse(
+        '{{ subtasksComplete_json|escapejs }}'
+    )
+    {% else %}
+    let subtasks = [];
+    let subtasksComplete = [];
+    {% endif %}
+</script>
+<script>
+    
+</script>
+{% endblock %}
+
+{% block site_css %}
+<link rel="stylesheet" href="{% static "tasks/styles/style.css" %}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <form class="col-8 mx-auto card p-4 shadow-lg" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if messages %}
+            <div class="alert alert-primary" role="alert">
+                {% for message in messages %}
+                {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Title of Task</label>
+        <input type="text" class="form-control" name="title" id="titletask" placeholder="Enter your task title" {% if task %}value="{{ task.title }}"{% endif %}>
+        </div>
+        <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Task description</label>
+        <textarea class="form-control" name="description" id="tasks-description" rows="3">{% if task %}{{ task.description }}{% endif %}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="deadline" class="form-label">Deadline</label>
+            <br>
+            <input type="datetime-local" name="deadline" id="task_deadline" {% if task %}value="{{ task.deadline|date:'Y-m-d\TH:i' }}"{% endif %}>
+        </div>
+        <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Add a subtask</label>
+        <input type="text" class="form-control" name="subtask" id="subtask-title" placeholder="Enter your subtask">
+        </div>
+        <div class="d-flex justify-content-center my-3">
+            <button type="button" class="btn btn-primary" onclick="addSubTask()">Add subtask</button>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width:10%">#</th>
+                    <th scope="col" style="width:10%">Status</th>
+                    <th scope="col" style="width:60%">Name</th>
+                    <th scope="col" style="width:20%">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="subtasks-table">
+                
+            </tbody>
+        </table>
+        <input type="hidden" name="list-subtasks" id="subtasks-field">
+        <input type="hidden" name="list-subtasks-complete" id="subtasks-field-complete">
+        <button type="submit" class="btn btn-success" id="submit-btn">Submit</button>
+        </form>
+    </div>
+{% endblock %}
