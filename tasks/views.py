@@ -508,7 +508,7 @@ def RemoveUser(request,id):
     if request.method != "POST":
         return redirect("/all-tasks/")
     user = User.objects.get(id = id)
-    if user.username == "vrundkan":
+    if user.username == request.user.username or user.group.filter(name="TaskAssigner").exists or user.is_staff:
         messages.error(request,"You cannot delete a SUPERUSER!")
         return redirect("/all-users/")
     user.delete()
